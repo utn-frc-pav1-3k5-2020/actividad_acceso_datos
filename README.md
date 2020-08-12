@@ -134,12 +134,12 @@ Luego de ingresar los datos seleccionando la opción: Probar conexión podemos v
 
 **1.1. Ejecutar comando clone para descargar repositorio:** 
 ```sh
-$ git clone https://github.com/utn-frc-pav1-3k5-2019/semana_4_bugtracker_consulta_bugs.git
+$ git clone https://github.com/utn-frc-pav1-3k5-2020/actividad_acceso_datos.git
 ```
 **1.2. Ubicarse en la carpeta generada con el nombre del repositorio: 
 
 ```sh
-$ cd semana_4_bugtracker_consulta_bugs
+$ cd actividad_acceso_datos
 ```
 
 **1.3. Crear un nuevo branch (rama)**
