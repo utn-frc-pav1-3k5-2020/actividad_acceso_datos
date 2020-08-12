@@ -66,6 +66,13 @@ Otra característica interesante de ADO.NET es la posibilidad de trabajar localm
 
 **![](https://lh3.googleusercontent.com/717dFOXMciTJYnIL3zhZKbvBxauZuH0k8WMa98HtLxFeth3FhJS7ZtzvI4f-vubcNaVpGpoh_MsN9ov8OwMFdwPHXs8Y02Oi-CmvHww7vC2RU6dbdrdIbovAAlfj1AKGUH_skrI)**
 
+## Command
+Cada uno de estos objetos expone métodos para ejecutar comandos que se basan en el tipo de comando y el valor devuelto deseado, tal como se describe a continuación:
+ -   **ExecuteReader :**	Devuelve un objeto DataReader.
+ -   **ExecuteScalar :**	Devuelve un solo valor escalar.
+ -   **ExecuteNonQuery :**	Ejecuta un comando que no devuelve ninguna fila.
+ -   **ExecuteXMLReader :**	Devuelve un valor XmlReader. Solo está disponible para un objeto SqlCommand.
+
 ## Resumiendo
 
 En síntesis, tenemos dos maneras de interactuar con nuestra BD, manteniendo la conexión activa hasta que se obtienen y/o actualizan los datos o de manera local mediante un conjunto de datos en memoria.
@@ -90,12 +97,21 @@ En síntesis, tenemos dos maneras de interactuar con nuestra BD, manteniendo la 
 ## Cadena de Conexión (ConnectionString) 
 Una cadena de conexión es una cadena que contiene información acerca de una fuente de datos (en este caso sobre un motor de base de datos), además de incluir la información necesaria para conectarse a la misma. A Continuación un ejemplo de la sintaxis:
 
+Conexión con usuario/password:
 Data Source=maquis;Initial Catalog=BugTracker;User ID=avisuales1;Password=*****
 
  - **Data Source**: Nombre del servidor de base de datos. 
  - **Initial Catalog**: Nombre de la base de datos. 
  - **User ID**: Usuario de conexión a la base de datos. 
  - **Password**: Contraseña del User ID.
+
+
+Conexión a través de windows:
+Data Source=.\\SQLEXPRESS;Initial Catalog=BugTracker;Integrated Security=true;
+
+ - **Data Source**: Nombre del servidor de base de datos. 
+ - **Initial Catalog**: Nombre de la base de datos. 
+ - **Integrated Security**: Seguridad integrada con Windows.
 
 Un forma muy sencilla de obtener este string es utilizar la ventana **Explorador de Servidores** y seleccionar la opción **Agregar conexión**, donde se muestra la siguiente ventana:
 	![](https://lh5.googleusercontent.com/n0meglttAAqSp1gyqOP2u2iIXKJp4ZoTI-B0PZfGlFtW312PUXKtKM4y6avjYX2_ONpIF9xjiJby1j1ix-EJ-LGes6-rTqhFwDhmVGI4UC8MQNcB6AnOU-VglVO-Qu9Eo7UTSC0)  
@@ -132,7 +148,7 @@ El cambio se reduce solo a modificar el método auxiliar de la clase frmLogin: V
             SqlConnection conexion = new SqlConnection();
 
             //Definimos la cadena de conexion a la base de datos.
-            conexion.ConnectionString = "Data Source=maquis;Initial Catalog=BugTracker;User ID=avisuales1;Password=avisuales1";
+            conexion.ConnectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BugTracker;Integrated Security=true;";
 
             //La sentencia try...catch nos permite "atrapar" excepciones (Errores) y dar al usuario un mensaje más amigable.
             try
@@ -196,177 +212,166 @@ El cambio se reduce solo a modificar el método auxiliar de la clase frmLogin: V
 
 Siempre que necesitemos ejecutar comandos para recuperar y/o actualizar datos a la BD vamos a necesitar ejecutar los mismos pasos. Por lo que sería muy conveniente generalizar dicha lógica como comportamiento de una clase específica que brinde los servicios para el acceso a los datos para cualquier componente que lo requiera.
 
-Se propone entonces, crear una clase llamada **DBHelper** con la siguiente estructura:
+Se propone entonces, crear una clase llamada **DataManager** con la siguiente estructura:
 
 ```csharp
-using System.Collections.Generic;
-using System.Text;
-using System.Data.SqlClient;
 using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
-namespace BugTracker
+using System.Data.SqlClient;
+public class DataManager
 {
-    public class DBHelper
+    private SqlConnection dbConnection;
+
+
+    private static DataManager instance;
+    public DataManager()
     {
-        private string string_conexion;
-        private static DBHelper instance = new DBHelper();
-
-        private DBHelper()
-        {
-            string_conexion = "Data Source=DESKTOP-IOI9A80\\SQLEXPRESS;Initial Catalog=BugTracker;User ID=admin;Password=admin123";
-        }
-
-        public static DBHelper GetDBHelper()
-        {
-            if (instance == null)
-                instance = new DBHelper();
-            return instance;
-        }
-
-        /// Resumen:
-        ///     Se utiliza para sentencias SQL del tipo “Insert/Update/Delete”. Recibe por valor una sentencia sql como string
-        /// Devuelve:
-        ///      un valor entero con el número de filas afectadas por la sentencia ejecutada
-        /// Excepciones:
-        ///      System.Data.SqlClient.SqlException:
-        ///          El error de conexión se produce:
-        ///              a) durante la apertura de la conexión
-        ///              b) durante la ejecución del comando.
-        public int EjecutarSQL(string strSql)
-        {
-            int afectadas = 0;
-            SqlConnection cnn = new SqlConnection();
-            SqlCommand cmd = new SqlCommand();
-            SqlTransaction t = null;
-
-            try
-            {
-                cnn.ConnectionString = string_conexion;
-                cnn.Open();
-                //comienzo de transaccion...
-                t = cnn.BeginTransaction();
-                cmd.Connection = cnn;
-                cmd.CommandText = strSql;
-                cmd.Transaction = t;
-                afectadas = cmd.ExecuteNonQuery();
-                //Commit de transacción...
-                t.Commit();
-            }
-            catch (Exception ex)
-            {
-                if (t != null)
-                {
-                    t.Rollback();
-                    afectadas = 0;
-                }
-                throw ex;
-            }
-            finally
-            {
-                this.CloseConnection(cnn);
-            }
-
-            return afectadas;
-        }
-
-        /// Resumen:
-        ///     Se utiliza para sentencias SQL del tipo “Select”. Recibe por valor una sentencia sql como string
-        /// Devuelve:
-        ///      un objeto de tipo DataTable con el resultado de la consulta
-        /// Excepciones:
-        ///      System.Data.SqlClient.SqlException:
-        ///          El error de conexión se produce:
-        ///              a) durante la apertura de la conexión
-        ///              b) durante la ejecución del comando.
-        public DataTable ConsultaSQL(string strSql)
-        {
-            SqlConnection cnn = new SqlConnection();
-            SqlCommand cmd = new SqlCommand();
-            DataTable tabla = new DataTable();
-
-            try
-            {
-                cnn.ConnectionString = string_conexion;
-                cnn.Open();
-                cmd.Connection = cnn;
-                cmd.CommandType = CommandType.Text;
-                cmd.CommandText = strSql;
-                tabla.Load(cmd.ExecuteReader());
-                return tabla;
-            }
-            catch (SqlException ex)
-            {
-                throw (ex);
-            }
-            finally
-            {
-                this.CloseConnection(cnn);
-            }
-        }
-
-        /// Resumen:
-        ///      Se utiliza para sentencias SQL del tipo “Select” con parámetros recibidos desde la interfaz
-        ///      La función recibe por valor una sentencia sql como string y un arreglo de objetos como parámetros
-        /// Devuelve:
-        ///      un objeto de tipo DataTable con el resultado de la consulta
-        /// Excepciones:
-        ///      System.Data.SqlClient.SqlException:
-        ///          El error de conexión se produce:
-        ///              a) durante la apertura de la conexión
-        ///              b) durante la ejecución del comando.
-        public DataTable ConsultarSQLConParametros(string sqlStr, Object[] prs)
-        {
-            SqlConnection cnn = new SqlConnection();
-            SqlCommand cmd = new SqlCommand();
-            DataTable tabla = new DataTable();
-
-            string n_param;
-            try
-            {
-                cnn.ConnectionString = string_conexion;
-                cnn.Open();
-                cmd.Connection = cnn;
-
-                cmd.CommandType = CommandType.Text;
-                cmd.CommandText = sqlStr;
-
-                //Agregamos a la colección de parámetros del comando los filtros recibidos
-                //IMPORTANTE: cada parametro deberá llamarse: param1, param2,.., paramN
-                for (int i = 0; i < prs.Length; i++)
-                    if (prs[i] != null)
-                    {
-                        n_param = "param" + Convert.ToString(i + 1);
-                        cmd.Parameters.AddWithValue(n_param, prs[i]);
-                    }
-
-                tabla.Load(cmd.ExecuteReader());
-                return tabla;
-            }
-            catch (Exception ex)
-            {
-                throw (ex);
-            }
-            finally
-            {
-                CloseConnection(cnn);
-            }
-        }
-
-        private void CloseConnection(SqlConnection cnn)
-        {
-            if (cnn.State == ConnectionState.Open)
-            {
-                cnn.Close();
-                cnn.Dispose();
-            }
-
-        }
-
+        dbConnection = new SqlConnection();
+        var string_conexion = "Data Source=.\\SQLEXPRESS;Initial Catalog=BugTracker;Integrated Security=true;";
+        dbConnection.ConnectionString = string_conexion;
     }
+
+    public static DataManager GetInstance()
+    {
+        if (instance == null)
+            instance = new DataManager();
+
+        instance.Open();
+
+        return instance;
+    }
+
+    public void Open()
+    {
+        if (dbConnection.State != ConnectionState.Open)
+            dbConnection.Open();
+    }
+
+    public void Close()
+    {
+        if (dbConnection.State != ConnectionState.Closed)
+            dbConnection.Close();
+    }
+
+
+    /// Resumen:
+    ///      Se utiliza para sentencias SQL del tipo “Select” con parámetros recibidos desde la interfaz
+    ///      La función recibe por valor una sentencia sql como string y un diccionario de objetos como parámetros
+    /// Devuelve:
+    ///      un objeto de tipo DataTable con el resultado de la consulta
+    /// Excepciones:
+    ///      System.Data.SqlClient.SqlException:
+    ///          El error de conexión se produce:
+    ///              a) durante la apertura de la conexión
+    ///              b) durante la ejecución del comando.
+    public DataTable ConsultaSQL(string strSql, Dictionary<string, object> prs = null)
+    {
+        SqlCommand cmd = new SqlCommand();
+        DataTable tabla = new DataTable();
+        try
+        {
+            cmd.Connection = dbConnection;
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = strSql;
+
+            //Agregamos a la colección de parámetros del comando los filtros recibidos
+            if (prs != null)
+            {
+                foreach (var item in prs)
+                {
+                    cmd.Parameters.AddWithValue(item.Key, item.Value);
+                }
+            }
+
+            tabla.Load(cmd.ExecuteReader());
+            return tabla;
+        }
+        catch (Exception ex)
+        {
+            throw (ex);
+        }
+    }
+
+    /// Resumen:
+    ///     Se utiliza para sentencias SQL del tipo “Insert/Update/Delete”. Recibe por valor una sentencia sql como string
+    /// Devuelve:
+    ///      un valor entero con el número de filas afectadas por la sentencia ejecutada
+    /// Excepciones:
+    ///      System.Data.SqlClient.SqlException:
+    ///          El error de conexión se produce:
+    ///              a) durante la apertura de la conexión
+    ///              b) durante la ejecución del comando.
+    public int EjecutarSQL(string strSql, Dictionary<string, object> prs = null)
+    {
+        // Se utiliza para sentencias SQL del tipo “Insert/Update/Delete”
+
+        SqlCommand cmd = new SqlCommand();
+
+        int rtdo = 0;
+
+        // Try Catch Finally
+        // Trata de ejecutar el código contenido dentro del bloque Try - Catch
+        // Si hay error lo capta a través de una excepción
+        // Si no hubo error
+        try
+        {
+            cmd.Connection = dbConnection;
+            cmd.CommandType = CommandType.Text;
+            // Establece la instrucción a ejecutar
+            cmd.CommandText = strSql;
+
+            //Agregamos a la colección de parámetros del comando los filtros recibidos
+            if (prs != null)
+            {
+                foreach (var item in prs)
+                {
+                    cmd.Parameters.AddWithValue(item.Key, item.Value);
+                }
+            }
+
+            // Retorna el resultado de ejecutar el comando
+            rtdo = cmd.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+        return rtdo;
+    }
+
+
+    /// Resumen:
+    ///     Se utiliza para sentencias SQL del tipo “Select”. Recibe por valor una sentencia sql como string
+    /// Devuelve:
+    ///      un valor entero
+    /// Excepciones:
+    ///      System.Data.SqlClient.SqlException:
+    ///          El error de conexión se produce:
+    ///              a) durante la apertura de la conexión
+    ///              b) durante la ejecución del comando.
+    public object ConsultaSQLScalar(string strSql)
+    {
+        SqlCommand cmd = new SqlCommand();
+        try
+        {
+            cmd.Connection = dbConnection;
+            cmd.CommandType = CommandType.Text;
+            // Establece la instrucción a ejecutar
+            cmd.CommandText = strSql;
+            return cmd.ExecuteScalar();
+        }
+        catch (SqlException ex)
+        {
+            throw (ex);
+        }
+    }
+
 }
 
 ```
-Y en el archivo **frmLogin.cs**, método **ValidarCredenciales()** refactorizamos la lógica para utilizar lo definido en DBHelper, resultando lo siguiente:
+Y en el archivo **frmLogin.cs**, método **ValidarCredenciales()** refactorizamos la lógica para utilizar lo definido en DataManager, resultando lo siguiente:
 
 ```csharp
         public bool ValidarCredenciales(string pUsuario, string pPassword)
@@ -385,8 +390,8 @@ Y en el archivo **frmLogin.cs**, método **ValidarCredenciales()** refactorizamo
                                                    "   FROM Usuarios ",
                                                    "  WHERE usuario =  '", pUsuario, "'");
 
-                //Usando el método GetDBHelper obtenemos la instancia unica de DBHelper (Patrón Singleton) y ejecutamos el método ConsultaSQL()
-                DataTable resultado =  DBHelper.GetDBHelper().ConsultaSQL(consultaSql);
+                //Usando el método GetDataManager obtenemos la instancia unica de DataManager (Patrón Singleton) y ejecutamos el método ConsultaSQL()
+                DataTable resultado =  DataManager.GetDataManager().ConsultaSQL(consultaSql);
 
                 //Validamos que el resultado tenga al menos una fila.
                 if (resultado.Rows.Count >= 1)

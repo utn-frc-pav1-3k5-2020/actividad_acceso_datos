@@ -12,10 +12,6 @@ namespace TPS_InicioSesion
 {
     public partial class frmLogin : Form
     {
-        // Credenciales Hardcodeadas!!
-        public string usuario = "test";
-        public string password = "test";
-
         public frmLogin()
         {
             InitializeComponent();
@@ -40,7 +36,7 @@ namespace TPS_InicioSesion
                 return;
             }
 
-           
+
             if (ValidarCredenciales(txtUsuario.Text, txtPassword.Text))
             {
                 MessageBox.Show("Usted a ingresado al sistema.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -56,7 +52,7 @@ namespace TPS_InicioSesion
 
         public bool ValidarCredenciales(string pUsuario, string pPassword)
         {
-            return (pUsuario == usuario && pPassword == password);
+            return false;
         }
 
         private void frmLogin_Load(object sender, EventArgs e)
