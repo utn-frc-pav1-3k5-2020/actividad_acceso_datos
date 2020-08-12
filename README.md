@@ -128,7 +128,50 @@ Ingresando los datos:
 Luego de ingresar los datos seleccionando la opción: Probar conexión podemos validar si la conexión puedo realizarse exitosamente o no. En caso de ser exitosa la opción Avanzadas permite acceder y copiar la cadena de conexión resultante.
 
 
-## Conectando con MS-SQL Server
+## Actividad: Login con Base de datos
+
+### 1. Clonar Repositorio (Clone/Checkout)
+
+**1.1. Ejecutar comando clone para descargar repositorio:** 
+```sh
+$ git clone https://github.com/utn-frc-pav1-3k5-2019/semana_4_bugtracker_consulta_bugs.git
+```
+**1.2. Ubicarse en la carpeta generada con el nombre del repositorio: 
+
+```sh
+$ cd semana_4_bugtracker_consulta_bugs
+```
+
+**1.3. Crear un nuevo branch (rama)**
+
+Para crear una nueva rama (branch) y saltar a ella, en un solo paso, puedes utilizar el comando  `git checkout`  con la opción  `-b`, indicando el nombre del nuevo branch (reemplazando el nro de legajo) de la siguiente forma branch_{legajo}, para el legajo 12345:
+
+```sh
+$ git checkout -b branch_12345 
+Switched to a new branch "12345"
+```
+Y para que se vea reflejada en GitHub:
+```sh
+$ git push --set-upstream origin branch_12345
+```
+
+### 2. Ejecutar Script Base de datos
+**2.1. Iniciar la aplicación `Microsoft Sql Server Management Studio`**
+
+Solicitará ingresar los datos de la base de datos para generar una conexión, completar los datos y hacer click en **Connect**. Los datos del servidor del labsis son:
+
+ - **Tipo Servidor:** Database Engine
+ - **Nombre Servidor:** .\SQLEXPRESS
+ - **Autenticación:** Windows Authentication.
+ 
+ 
+ **2.2. Abrir archivo `BugTracker_Crear_BaseDatos.sql`**
+ Ir a la opción `Archivo -> Abrir -> Archivo` (o combinación de teclas `Ctrl + O`) y buscar el archivo BugTracker_DB.sql en el disco local.
+  
+**2.3. Ejecutar Script** 
+Para ejecutar el script hacer click sobre el botón `Ejecutar` (o usar la tecla `F5`)
+
+### 3. Comenzamos con el desarrollo
    
 En este segundo paso nos centramos en refactorizar la funcionalidad de login del proyecto **BugTracker** y mediante el uso de los objetos de ADO.NET vamos a acceder a una base de datos alojada en un servidor SQL-Server 2008 para que la validación de usuario y clave se haga efectivamente contra los usuarios registrados en la tabla **Usuario**.
 
@@ -208,7 +251,7 @@ El cambio se reduce solo a modificar el método auxiliar de la clase frmLogin: V
 
 > Como regla general, cada vez que abrimos una conexión en un bloque de código, tenemos que cerrarla al finalizar la ejecución del mismo. De esta manera garantizamos que tanto los recursos utilizados en memoria como del lado del servidor de datos son liberados luego de procesar los comandos SQL a la Base de Datos.
 
-## Generalizando el código
+### 4. Generalizando el código
 
 Siempre que necesitemos ejecutar comandos para recuperar y/o actualizar datos a la BD vamos a necesitar ejecutar los mismos pasos. Por lo que sería muy conveniente generalizar dicha lógica como comportamiento de una clase específica que brinde los servicios para el acceso a los datos para cualquier componente que lo requiera.
 
