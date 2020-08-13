@@ -70,7 +70,7 @@ namespace BugTracker
             SqlConnection conexion = new SqlConnection();
 
             //Definimos la cadena de conexion a la base de datos.
-            conexion.ConnectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BugTracker;Integrated Security=true;";
+            conexion.ConnectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BugTracker81295;Integrated Security=true;";
 
             //La sentencia try...catch nos permite "atrapar" excepciones (Errores) y dar al usuario un mensaje más amigable.
             try
