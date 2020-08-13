@@ -78,6 +78,7 @@
             this.btnIngresar.Text = "Ingresar";
             this.btnIngresar.UseVisualStyleBackColor = true;
             this.btnIngresar.Click += new System.EventHandler(this.btnIngresar_Click);
+            this.btnIngresar.Enter += new System.EventHandler(this.btnIngresar_Click);
             // 
             // btnSalir
             // 
