@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -39,7 +40,7 @@ namespace TPS_InicioSesion
 
             if (ValidarCredenciales(txtUsuario.Text, txtPassword.Text))
             {
-                MessageBox.Show("Usted a ingresado al sistema.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Usted ha ingresado al sistema.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
             else
@@ -52,7 +53,38 @@ namespace TPS_InicioSesion
 
         public bool ValidarCredenciales(string pUsuario, string pPassword)
         {
-            return false;
+            bool validUser = false;
+            SqlConnection conexion = new SqlConnection();
+
+            try
+            {
+                String consultaSql = string.Concat(" SELECT * ",
+                                                   " FROM Usuarios ",
+                                                   " WHERE usuario = '", pUsuario, "'");
+
+                DataTable resultado = DataManager.getInstance().ConsultaSQL(consultaSql);
+
+                if (resultado.Rows.Count >= 1)
+                {
+                    if(resultado.Rows[0]["password"].ToString() == pPassword)
+                    {
+                        validUser = true;
+                    }
+                }
+            }
+            catch(SqlException ex)
+            {
+                MessageBox.Show(string.Concat("Error de base de datos: ", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if(conexion.State == ConnectionState.Open)
+                {
+                    conexion.Close();
+                }
+            }
+
+            return validUser;
         }
 
         private void frmLogin_Load(object sender, EventArgs e)
