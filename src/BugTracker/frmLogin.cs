@@ -83,7 +83,6 @@ namespace TPS_InicioSesion
                     conexion.Close();
                 }
             }
-
             return validUser;
         }
 
