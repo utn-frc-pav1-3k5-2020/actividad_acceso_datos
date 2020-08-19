@@ -1,4 +1,6 @@
-﻿namespace TPS_InicioSesion
+﻿
+
+namespace TPS_InicioSesion
 {
     partial class frmLogin
     {
@@ -76,6 +78,7 @@
             this.btnIngresar.Size = new System.Drawing.Size(75, 23);
             this.btnIngresar.TabIndex = 4;
             this.btnIngresar.Text = "Ingresar";
+            
             this.btnIngresar.UseVisualStyleBackColor = true;
             this.btnIngresar.Click += new System.EventHandler(this.btnIngresar_Click);
             // 
@@ -124,5 +127,9 @@
 
         private System.Windows.Forms.Button btnSalir;
     }
+
 }
+
+
+
 

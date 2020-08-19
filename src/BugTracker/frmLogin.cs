@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -52,13 +53,61 @@ namespace TPS_InicioSesion
 
         public bool ValidarCredenciales(string pUsuario, string pPassword)
         {
-            return false;
-        }
+            bool usuarioValido = false;
 
+            SqlConnection conexion = new SqlConnection();
+
+            conexion.ConnectionString = "Data Source=.\\SQLEXPRESS;Initial Catalog=BugTracker;Integrated Security=True";
+
+            try
+            {
+                conexion.Open();
+
+                String consultaSQL = string.Concat("SELECT * ",
+                                                        "FROM Usuarios ",
+                                                        "WHERE usuarios = '", pUsuario, "'");
+                SqlCommand command = new SqlCommand(consultaSQL, conexion);
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    if (reader["password"].ToString() == pPassword)
+                    {
+                        usuarioValido = true;
+                    }
+                }
+            }
+
+            catch(SqlException ex)
+            {
+                MessageBox.Show(string.Concat("error de base de datos : ",ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                //Preguntamos si el estado de la conexion es abierto antes de cerrar la conexion.
+                if (conexion.State == ConnectionState.Open)
+                {
+                    //Cerramos la conexion
+                    conexion.Close();
+                }
+            }
+
+            // Retornamos el valor de usuarioValido. 
+            return usuarioValido;
+        
+        
+        }
         private void frmLogin_Load(object sender, EventArgs e)
         {
             this.CenterToParent();
         }
+
+
+
     }
 
+        
 }
+
+
