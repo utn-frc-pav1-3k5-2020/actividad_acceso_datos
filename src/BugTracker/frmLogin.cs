@@ -54,7 +54,7 @@ namespace TPS_InicioSesion
         public bool ValidarCredenciales(string pUsuario, string pPassword)
         {
             bool validUser = false;
-            SqlConnection conexion = new SqlConnection();
+            
 
             try
             {
@@ -78,10 +78,7 @@ namespace TPS_InicioSesion
             }
             finally
             {
-                if(conexion.State == ConnectionState.Open)
-                {
-                    conexion.Close();
-                }
+                DataManager.getInstance().Close();
             }
             return validUser;
         }

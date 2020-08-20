@@ -12,7 +12,7 @@ public class DataManager
 
     private static DataManager instance;
 
-    private DataManager()
+    public DataManager()
     {
         dbConnection = new SqlConnection();
         var string_connection = "Data Source=.\\SQLEXPRESS;Initial Catalog=BugTracker;Integrated Security=True;";
